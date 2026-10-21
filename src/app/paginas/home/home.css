@@ -1,0 +1,455 @@
+.hero {
+  min-height: 620px;
+  padding: 80px 8%;
+
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: center;
+  gap: 70px;
+
+  background:
+    linear-gradient(
+      120deg,
+      #fffaf5 0%,
+      #fff 55%,
+      #f7efe7 100%
+    );
+}
+
+.hero-content {
+  max-width: 650px;
+}
+
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 20px;
+  padding: 7px 13px;
+
+  background: #ffedd5;
+  color: #b45309;
+
+  border-radius: 100px;
+
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.hero h1 {
+  margin: 0 0 22px;
+
+  color: #28231f;
+
+  font-size: clamp(2.8rem, 5vw, 4.7rem);
+  line-height: 1.05;
+  letter-spacing: -2px;
+}
+
+.hero h1 span {
+  color: #d97706;
+}
+
+.hero p {
+  max-width: 570px;
+  margin-bottom: 32px;
+
+  color: #706963;
+
+  font-size: 1.1rem;
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 15px;
+}
+
+/* Ahora funciona tanto con <a> como con <button> */
+.hero-actions a,
+.hero-actions button {
+  padding: 13px 23px;
+
+  border-radius: 8px;
+
+  text-decoration: none;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.primary-button {
+  border: none;
+
+  background: #d97706;
+  color: white;
+}
+
+.primary-button:hover {
+  background: #b45309;
+}
+
+.secondary-button {
+  color: #555;
+  border: 1px solid #d5d5d5;
+  background: white;
+}
+
+.secondary-button:hover {
+  background: #f8f8f8;
+}
+
+/* CARRUSEL */
+
+.hero-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.carousel {
+  position: relative;
+
+  width: 100%;
+  max-width: 560px;
+  height: 420px;
+
+  overflow: hidden;
+
+  border-radius: 22px;
+
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.18);
+}
+
+.carousel-image {
+  width: 100%;
+  height: 100%;
+
+  object-fit: fill;
+
+  display: block;
+}
+
+.carousel-button {
+  position: absolute;
+  top: 50%;
+
+  transform: translateY(-50%);
+
+  width: 45px;
+  height: 45px;
+
+  border: none;
+  border-radius: 50%;
+
+  background: rgba(0, 0, 0, 0.45);
+  color: white;
+
+  font-size: 1.5rem;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.carousel-button:hover {
+  background: rgba(0, 0, 0, 0.7);
+
+  transform:
+    translateY(-50%)
+    scale(1.08);
+}
+
+.carousel-button-left {
+  left: 15px;
+}
+
+.carousel-button-right {
+  right: 15px;
+}
+
+.carousel-indicators {
+  position: absolute;
+
+  bottom: 15px;
+  left: 50%;
+
+  transform: translateX(-50%);
+
+  display: flex;
+  gap: 8px;
+}
+
+.carousel-dot {
+  width: 10px;
+  height: 10px;
+
+  padding: 0;
+
+  border: 2px solid white;
+  border-radius: 50%;
+
+  background: rgba(255, 255, 255, 0.4);
+
+  cursor: pointer;
+}
+
+.carousel-dot.active {
+  background: white;
+}
+
+/* FUNCIONALIDADES */
+
+.features {
+  padding: 100px 8%;
+}
+
+.section-heading {
+  max-width: 720px;
+  margin: 0 auto 55px;
+
+  text-align: center;
+}
+
+.section-heading > span {
+  color: #d97706;
+  font-weight: 600;
+}
+
+.section-heading h2 {
+  margin: 12px 0 15px;
+
+  color: #28231f;
+  font-size: 2.3rem;
+}
+
+.section-heading p {
+  color: #777;
+  line-height: 1.7;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 25px;
+}
+
+.feature-card {
+  padding: 32px;
+
+  border: 1px solid #eee;
+  border-radius: 16px;
+
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+}
+
+.feature-icon {
+  width: 48px;
+  height: 48px;
+
+  margin-bottom: 22px;
+
+  display: grid;
+  place-items: center;
+
+  background: #ffedd5;
+  color: #c15d05;
+
+  border-radius: 10px;
+
+  font-weight: 700;
+}
+
+.feature-card h3 {
+  color: #28231f;
+}
+
+.feature-card p {
+  color: #777;
+  line-height: 1.7;
+}
+
+/* NEGOCIOS */
+
+.business-section {
+  margin: 20px 8% 100px;
+  padding: 60px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 70px;
+
+  background: #28231f;
+  color: white;
+
+  border-radius: 20px;
+}
+
+.business-content {
+  max-width: 650px;
+}
+
+.business-content > span {
+  color: #fdba74;
+}
+
+.business-content h2 {
+  margin: 10px 0 20px;
+  font-size: 2.2rem;
+}
+
+.business-content p {
+  color: #d6d3d1;
+  line-height: 1.7;
+}
+
+.business-stat {
+  min-width: 200px;
+
+  display: flex;
+  flex-direction: column;
+
+  text-align: center;
+}
+
+.business-stat strong {
+  color: #fdba74;
+  font-size: 5rem;
+}
+
+.business-stat span {
+  color: #ddd;
+}
+
+/* CTA */
+
+.cta {
+  padding: 70px 8%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 30px;
+
+  background: #f7efe7;
+}
+
+.cta span {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.cta h2 {
+  margin: 8px 0 0;
+  color: #29231f;
+}
+
+/* Ahora acepta tanto <a> como <button> */
+.cta a,
+.cta button {
+  white-space: nowrap;
+
+  padding: 14px 25px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #d97706;
+  color: white;
+
+  text-decoration: none;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.cta a:hover,
+.cta button:hover {
+  background: #b45309;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+    padding: 60px 7%;
+  }
+
+  .hero-content {
+    text-align: center;
+    margin: auto;
+  }
+
+  .hero p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .hero-actions {
+    justify-content: center;
+  }
+
+  .feature-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .business-section {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .cta {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .carousel {
+    max-width: 600px;
+    height: 380px;
+  }
+}
+
+@media (max-width: 550px) {
+  .hero {
+    padding: 50px 5%;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+  }
+
+  .hero-actions a,
+  .hero-actions button {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+
+  .features {
+    padding: 70px 5%;
+  }
+
+  .business-section {
+    margin: 10px 5% 70px;
+    padding: 40px 25px;
+  }
+
+  .carousel {
+    height: 280px;
+  }
+}

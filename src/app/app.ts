@@ -1,12 +1,26 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { MsalService } from '@azure/msal-angular';
+import { loginRequest } from './auth-config';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './app.html',
-  styleUrl: './app.css'
+  styleUrl: './app.css',
 })
 export class App {
-  protected readonly title = signal('frontend-pedidos');
+  private msal = inject(MsalService);
+
+  get account() {
+    return this.msal.instance.getActiveAccount();
+  }
+
+  login() {
+    this.msal.instance.loginRedirect(loginRequest);
+  }
+
+  logout() {
+    this.msal.instance.logoutRedirect({ account: this.account });
+  }
 }

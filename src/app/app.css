@@ -1,0 +1,234 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.navbar {
+  height: 72px;
+  padding: 0 6%;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  background: #ffffff;
+  border-bottom: 1px solid #e7e7e7;
+
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  text-decoration: none;
+  color: #252525;
+}
+
+.brand-icon {
+  width: 44px;
+  height: 44px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 12px;
+  background: #d97706;
+  color: white;
+
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.brand div {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand strong {
+  font-size: 1.2rem;
+}
+
+.brand small {
+  color: #777;
+  font-size: 0.72rem;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.nav-links a {
+  color: #555;
+  text-decoration: none;
+  font-weight: 500;
+
+  transition: color 0.2s;
+}
+
+.nav-links a:hover {
+  color: #d97706;
+}
+
+.nav-links a.active {
+  color: #d97706;
+}
+
+/* Login con Azure/MSAL: ahora es un botón */
+.login-link {
+  padding: 10px 18px;
+
+  border: 1px solid #d97706;
+  border-radius: 8px;
+
+  background: white;
+  color: #d97706;
+
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.login-link:hover {
+  background: #fff7ed;
+  color: #b45309;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.user-avatar {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  background: #28231f;
+  color: #fdba74;
+
+  border-radius: 50%;
+
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.user-email {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #29231f;
+}
+
+.user-role {
+  font-size: 0.72rem;
+  color: #8a847e;
+  font-weight: 500;
+}
+
+.logout-btn {
+  padding: 10px 16px;
+
+  background: #fff;
+  color: #b91c1c;
+
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.logout-btn:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #991b1b;
+}
+
+.page-content {
+  flex: 1;
+}
+
+.footer {
+  padding: 32px 6%;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: #26221f;
+  color: #f5f5f5;
+}
+
+.footer p {
+  margin: 5px 0 0;
+  color: #bbb;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 750px) {
+  .navbar {
+    height: auto;
+    padding: 16px 5%;
+
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .nav-links {
+    width: 100%;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .user-info {
+    max-width: 220px;
+  }
+
+  .user-email {
+    max-width: 160px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .footer {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+}

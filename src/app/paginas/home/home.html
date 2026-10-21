@@ -1,0 +1,172 @@
+<section class="hero">
+  <div class="hero-content">
+    <span class="eyebrow">
+      Gestión simple. Negocios conectados.
+    </span>
+
+    <h1>
+      Administra tus pedidos con
+      <span>Pedidos360</span>
+    </h1>
+
+    <p>
+      Una plataforma para gestionar pedidos de cafeterías y panaderías,
+      realizar seguimiento de sus estados y mantener informados a
+      clientes y operadores.
+    </p>
+
+    <div class="hero-actions">
+      <button
+        type="button"
+        class="primary-button"
+        (click)="login()">
+        Iniciar sesión con Microsoft
+      </button>
+
+      @if (account) {
+        <a routerLink="/panel" class="secondary-button">
+          Ir al panel
+        </a>
+      }
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="carousel">
+      <img
+        class="carousel-image"
+        [src]="imagenesCarrusel[indiceActual].src"
+        [alt]="imagenesCarrusel[indiceActual].alt">
+
+      <button
+        class="carousel-button carousel-button-left"
+        type="button"
+        (click)="imagenAnterior()"
+        aria-label="Imagen anterior">
+        &#10094;
+      </button>
+
+      <button
+        class="carousel-button carousel-button-right"
+        type="button"
+        (click)="siguienteImagen()"
+        aria-label="Imagen siguiente">
+        &#10095;
+      </button>
+
+      <div class="carousel-indicators">
+        @for (
+          imagen of imagenesCarrusel;
+          track imagen.src;
+          let i = $index
+        ) {
+          <button
+            type="button"
+            class="carousel-dot"
+            [class.active]="i === indiceActual"
+            (click)="seleccionarImagen(i)"
+            [attr.aria-label]="'Mostrar imagen ' + (i + 1)">
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<section
+  class="features"
+  id="funcionalidades">
+
+  <div class="section-heading">
+    <span>Todo en un mismo lugar</span>
+
+    <h2>
+      Herramientas para gestionar pedidos
+    </h2>
+
+    <p>
+      Pedidos360 permite centralizar la operación de cafeterías y
+      panaderías, controlar el flujo de pedidos y comunicar sus cambios
+      de estado.
+    </p>
+  </div>
+
+  <div class="feature-grid">
+
+    <article class="feature-card">
+      <div class="feature-icon">01</div>
+
+      <h3>Gestión de pedidos</h3>
+
+      <p>
+        Consulta pedidos, revisa sus detalles y realiza seguimiento
+        durante todo su proceso.
+      </p>
+    </article>
+
+    <article class="feature-card">
+      <div class="feature-icon">02</div>
+
+      <h3>Estados del pedido</h3>
+
+      <p>
+        Controla el avance desde la creación del pedido hasta su
+        preparación, despacho y entrega.
+      </p>
+    </article>
+
+    <article class="feature-card">
+      <div class="feature-icon">03</div>
+
+      <h3>Notificaciones</h3>
+
+      <p>
+        Mantén informados a clientes y operadores mediante eventos
+        generados de forma asíncrona ante cambios importantes.
+      </p>
+    </article>
+
+  </div>
+</section>
+
+<section class="business-section">
+  <div class="business-content">
+    <span>Pedidos360</span>
+
+    <h2>
+      Pensado para cafeterías y panaderías
+    </h2>
+
+    <p>
+      Centraliza la gestión de pedidos y facilita la coordinación entre
+      clientes y operadores desde una plataforma segura y conectada.
+    </p>
+  </div>
+
+  <div class="business-stat">
+    <strong>20</strong>
+    <span>PYMES conectadas</span>
+  </div>
+</section>
+
+<section class="cta">
+  <div>
+    <span>Accede a Pedidos360</span>
+
+    <h2>
+      Gestiona tus pedidos desde una sola plataforma.
+    </h2>
+  </div>
+
+  @if (account) {
+    <a routerLink="/panel">
+      Ir al panel
+    </a>
+  } @else {
+    <button
+      type="button"
+      (click)="login()">
+      Iniciar sesión con Microsoft
+    </button>
+  }
+</section>
