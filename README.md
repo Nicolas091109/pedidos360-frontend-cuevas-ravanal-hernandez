@@ -1,59 +1,96 @@
-# FrontendPedidos
+# Pedidos360 – Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.2.
+Frontend de **Pedidos360**, una plataforma para gestionar pedidos de cafeterías y panaderías. Está hecho con **Angular 22** (componentes standalone) y usa **Microsoft Entra ID (Azure AD)** con **MSAL** para iniciar sesión.
 
-## Development server
+---
 
-To start a local development server, run:
+## Tabla de contenidos
 
-```bash
-ng serve
-```
+1. [Tecnologías](#tecnologías)
+2. [Requisitos previos](#requisitos-previos)
+3. [Instalación y ejecución](#instalación-y-ejecución)
+4. [Autenticación con Azure (MSAL)](#autenticación-con-azure-msal)
+5. [Rutas de la aplicación](#rutas-de-la-aplicación)
+6. [Estructura del proyecto](#estructura-del-proyecto)
+7. [Scripts disponibles](#scripts-disponibles)
+8. [Pruebas](#pruebas)
+9. [Build de producción](#build-de-producción)
+10. [Solución de problemas](#solución-de-problemas)
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+---
 
-## Code scaffolding
+## Tecnologías
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+| Herramienta | Versión | Uso |
+|---|---|---|
+| Angular | 22.x | Framework del frontend |
+| @azure/msal-angular | 6.x | Integración de MSAL con Angular (guard e interceptor) |
+| @azure/msal-browser | 5.x | Cliente de autenticación con Microsoft Entra ID |
+| RxJS | 7.8 | Programación reactiva |
+| TypeScript | 6.0 | Lenguaje |
+| Vitest + jsdom | 4.x | Pruebas unitarias |
+| Prettier | 3.x | Formato de código |
 
-```bash
-ng generate component component-name
-```
+---
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## Requisitos previos
 
-```bash
-ng generate --help
-```
+- **Node.js**: una versión compatible con Angular 22: `^22.22.3`, `^24.15.0` o `>=26.0.0`.
+  Para revisar la tuya:
+  ```bash
+  node -v
+  ```
+- **npm** 11 o superior (el proyecto declara `npm@11.13.0`).
+- **Angular CLI** (opcional; también se puede usar con `npx`):
+  ```bash
+  npm install -g @angular/cli
+  ```
+- Una **cuenta de Microsoft** del tenant de Azure configurado, para poder iniciar sesión.
+- *(Opcional)* El **backend** de Pedidos360 corriendo en `http://localhost:8080/`. Por ahora el frontend no hace llamadas al backend, así que no es necesario para ver las pantallas.
 
-## Building
+---
 
-To build the project run:
+## Instalación y ejecución
 
-```bash
-ng build
-```
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/Nicolas091109/pedidos360-frontend-cuevas-ravanal-hernandez.git
+   cd pedidos360-frontend-cuevas-ravanal-hernandez
+   ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+2. **Instalar dependencias**
+   ```bash
+   npm install
+   ```
 
-## Running unit tests
+3. **Levantar el servidor de desarrollo**
+   ```bash
+   npm start
+   ```
+   (equivale a `ng serve`).
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+4. **Abrir el navegador** en:
+   ```
+   http://localhost:4200/
+   ```
 
-```bash
-ng test
-```
+> ⚠️ **Hay que usar el puerto 4200.** La URL de redirección de Azure está configurada como `http://localhost:4200`. Si la app corre en otro puerto (por ejemplo, `ng serve --port 4300`), el login va a fallar con un error de *redirect URI mismatch*.
 
-## Running end-to-end tests
+La aplicación se recarga sola cada vez que se guarda un archivo dentro de `src/`.
 
-For end-to-end (e2e) testing, run:
+---
 
-```bash
-ng e2e
-```
+## Autenticación con Azure (MSAL)
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+La configuración de autenticación está en [`src/app/auth-config.ts`](src/app/auth-config.ts):
 
-## Additional Resources
+| Parámetro | Valor actual | Descripción |
+|---|---|---|
+| `TENANT_ID` | `8d6f1b21-2f45-42ed-a451-025b1954fc47` | Tenant de Microsoft Entra ID |
+| `CLIENT_ID` | `238dfb81-d629-4f98-a61b-acaa009c3f47` | App registration del frontend (SPA) |
+| `apiScope` | `api://d8ff5f57-bec7-4301-bfb0-d897468198de/access-all` | Scope expuesto por la API del backend |
+| `redirectUri` / `postLogoutRedirectUri` | `http://localhost:4200` | A dónde vuelve el usuario después de iniciar o cerrar sesión |
+| `apiBaseUrl` | `http://localhost:8080/` | URL base del backend |
+| `cacheLocation` | `LocalStorage` | Dónde guarda MSAL los tokens |
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+### Cómo funciona
