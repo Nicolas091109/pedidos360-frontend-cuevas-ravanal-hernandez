@@ -1,0 +1,170 @@
+name: pedidos360
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pedidos360-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pedidos360}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+    ports:
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - pedidos360
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: pedidos360-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASSWORD:-guest}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - pedidos360
+
+  catalog:
+    build:
+      context: ${CATALOG_DIR:-./ms-pedidos360-catalog}
+    image: pedidos360/ms-pedidos360-catalog:latest
+    container_name: pedidos360-catalog
+    restart: unless-stopped
+    environment:
+      PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/catalogdb
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-pedidos360}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${CATALOG_PORT:-8082}:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - pedidos360
+
+  orders:
+    build:
+      context: ${ORDERS_DIR:-./ms-pedidos360-orders}
+    image: pedidos360/ms-pedidos360-orders:latest
+    container_name: pedidos360-orders
+    restart: unless-stopped
+    environment:
+      PORT: 8083
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ordersdb
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-pedidos360}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      PEDIDOS360_CATALOGO_BASE_URL: http://catalog:8082
+      JWT_ISSUER_URI: ${JWT_ISSUER_URI:?Configura JWT_ISSUER_URI en .env}
+      RABBIT_HOST: rabbitmq
+      RABBIT_PORT: 5672
+      RABBIT_USER: ${RABBIT_USER:-guest}
+      RABBIT_PASSWORD: ${RABBIT_PASSWORD:-guest}
+      OPERATOR_EMAILS: ${OPERATOR_EMAILS:-}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+      JAVA_TOOL_OPTIONS: "-Djava.net.preferIPv4Stack=true"
+    ports:
+      - "${ORDERS_PORT:-8083}:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      catalog:
+        condition: service_started
+    networks:
+      - pedidos360
+
+  notify:
+    build:
+      context: ${NOTIFY_DIR:-./ms-pedidos360-notify}
+    image: pedidos360/ms-pedidos360-notify:latest
+    container_name: pedidos360-notify
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: 8085
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: notifydb
+      DB_USER: ${POSTGRES_USER:-pedidos360}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      RABBIT_HOST: rabbitmq
+      RABBIT_PORT: 5672
+      RABBIT_USER: ${RABBIT_USER:-guest}
+      RABBIT_PASSWORD: ${RABBIT_PASSWORD:-guest}
+      JWT_ISSUER_URI: ${JWT_ISSUER_URI}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: ${JWT_ISSUER_URI}
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
+      JAVA_TOOL_OPTIONS: "-Djava.net.preferIPv4Stack=true"
+    ports:
+      - "${NOTIFY_PORT:-8085}:8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - pedidos360
+
+  gateway:
+    build:
+      context: ${GATEWAY_DIR:-./ms-pedidos360-gateway}
+    image: pedidos360/ms-pedidos360-gateway:latest
+    container_name: pedidos360-gateway
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      CATALOG_URL: http://catalog:8082
+      ORDERS_URL: http://orders:8083
+      NOTIFY_URL: http://notify:8085
+      JWT_ISSUER_URI: ${JWT_ISSUER_URI}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200}
+    ports:
+      - "${GATEWAY_PORT:-8080}:8080"
+    depends_on:
+      - catalog
+      - orders
+      - notify
+    networks:
+      - pedidos360
+
+  frontend:
+    profiles: [frontend]
+    build:
+      context: ${FRONTEND_DIR}
+      dockerfile: Dockerfile
+    image: pedidos360-frontend:latest
+    container_name: pedidos360-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:8080"
+    depends_on:
+      - gateway
+    networks:
+      - pedidos360
+
+volumes:
+  postgres-data:
+
+networks:
+  pedidos360:
+    name: pedidos360-net
+    driver: bridge
