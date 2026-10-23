@@ -16,17 +16,21 @@
     </p>
 
     <div class="hero-actions">
-      <button
-        type="button"
-        class="primary-button"
-        (click)="login()">
-        Iniciar sesión con Microsoft
-      </button>
-
       @if (account) {
-        <a routerLink="/panel" class="secondary-button">
-          Ir al panel
+        <a routerLink="/pedidos" class="primary-button">
+          Ver pedidos
         </a>
+
+        <a routerLink="/notificaciones" class="secondary-button">
+          Ver notificaciones
+        </a>
+      } @else {
+        <button
+          type="button"
+          class="primary-button"
+          (click)="login()">
+          Iniciar sesión con Microsoft
+        </button>
       }
     </div>
   </div>
@@ -159,8 +163,8 @@
   </div>
 
   @if (account) {
-    <a routerLink="/panel">
-      Ir al panel
+    <a routerLink="/pedidos">
+      Ir a pedidos
     </a>
   } @else {
     <button
