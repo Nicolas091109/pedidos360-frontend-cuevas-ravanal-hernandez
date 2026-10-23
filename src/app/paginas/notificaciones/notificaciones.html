@@ -1,0 +1,117 @@
+<section class="notificaciones-page">
+
+  <div class="notificaciones-header">
+    <div>
+      <span class="eyebrow">Centro de notificaciones</span>
+
+      <h1>Notificaciones</h1>
+
+      <p>
+        Revisa los avisos enviados a tus clientes cada vez que se crea
+        un pedido o cambia su estado.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="secondary-button"
+      [disabled]="cargando()"
+      (click)="cargarNotificaciones()">
+      Actualizar
+    </button>
+  </div>
+
+  <div class="resumen-grid">
+    <button
+      type="button"
+      class="resumen-card"
+      [class.active]="filtroEstado() === 'TODOS'"
+      (click)="filtroEstado.set('TODOS')">
+      <strong>{{ notificaciones().length }}</strong>
+      <span class="estado-badge">Total</span>
+    </button>
+
+    @for (estado of estados; track estado.valor) {
+      <button
+        type="button"
+        class="resumen-card"
+        [class.active]="filtroEstado() === estado.valor"
+        (click)="filtroEstado.set(filtroEstado() === estado.valor ? 'TODOS' : estado.valor)">
+        <strong>{{ contarPorEstado(estado.valor) }}</strong>
+        <span class="estado-badge" [attr.data-estado]="estado.valor">
+          {{ estado.etiqueta }}
+        </span>
+      </button>
+    }
+  </div>
+
+  <div class="filtros">
+    <input
+      type="search"
+      placeholder="Buscar por destinatario, asunto o mensaje"
+      [ngModel]="busqueda()"
+      (ngModelChange)="busqueda.set($event)">
+
+    <select
+      [ngModel]="filtroEstado()"
+      (ngModelChange)="filtroEstado.set($event)">
+      <option value="TODOS">Todos los estados</option>
+      @for (estado of estados; track estado.valor) {
+        <option [value]="estado.valor">{{ estado.etiqueta }}</option>
+      }
+    </select>
+  </div>
+
+  @if (error()) {
+    <div class="mensaje mensaje-error">{{ error() }}</div>
+  }
+
+  @if (cargando()) {
+    <div class="mensaje">Cargando notificaciones...</div>
+  } @else {
+    <div class="tabla-card">
+      @if (notificacionesFiltradas().length === 0) {
+        <div class="vacio">
+          <div class="vacio-icon">P360</div>
+          <p>No hay notificaciones que coincidan con la búsqueda.</p>
+        </div>
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Destinatario</th>
+              <th>Asunto</th>
+              <th>Mensaje</th>
+              <th>Fecha</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (notificacion of notificacionesFiltradas(); track notificacion.id) {
+              <tr>
+                <td>#{{ notificacion.id }}</td>
+                <td>{{ notificacion.recipient }}</td>
+                <td>{{ etiquetaAsunto(notificacion.subject) }}</td>
+                <td class="mensaje-celda">
+                  {{ notificacion.message }}
+                  @if (notificacion.errorDetail) {
+                    <small class="error-detalle">{{ notificacion.errorDetail }}</small>
+                  }
+                </td>
+                <td>{{ notificacion.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <span class="estado-badge" [attr.data-estado]="notificacion.estado">
+                    {{ etiquetaEstado(notificacion.estado) }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+
+</section>

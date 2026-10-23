@@ -1,0 +1,193 @@
+<section class="pedidos-page">
+
+  <div class="pedidos-header">
+    <div>
+      <span class="eyebrow">Gestión de pedidos</span>
+
+      <h1>Pedidos</h1>
+
+      <p>
+        Consulta los pedidos de tu negocio, revisa su detalle y
+        actualiza su estado a medida que avanzan.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="secondary-button"
+      [disabled]="cargando()"
+      (click)="cargarPedidos()">
+      Actualizar
+    </button>
+  </div>
+
+  <div class="resumen-grid">
+    @for (estado of estados; track estado.valor) {
+      <button
+        type="button"
+        class="resumen-card"
+        [class.active]="filtroEstado() === estado.valor"
+        (click)="filtroEstado.set(filtroEstado() === estado.valor ? 'TODOS' : estado.valor)">
+        <strong>{{ contarPorEstado(estado.valor) }}</strong>
+        <span class="estado-badge" [attr.data-estado]="estado.valor">
+          {{ estado.etiqueta }}
+        </span>
+      </button>
+    }
+  </div>
+
+  <div class="filtros">
+    <input
+      type="search"
+      placeholder="Buscar por número, cliente o dirección"
+      [ngModel]="busqueda()"
+      (ngModelChange)="busqueda.set($event)">
+
+    <select
+      [ngModel]="filtroEstado()"
+      (ngModelChange)="filtroEstado.set($event)">
+      <option value="TODOS">Todos los estados</option>
+      @for (estado of estados; track estado.valor) {
+        <option [value]="estado.valor">{{ estado.etiqueta }}</option>
+      }
+    </select>
+  </div>
+
+  @if (error()) {
+    <div class="mensaje mensaje-error">{{ error() }}</div>
+  }
+
+  @if (cargando()) {
+    <div class="mensaje">Cargando pedidos...</div>
+  } @else {
+    <div class="pedidos-layout" [class.con-detalle]="pedidoSeleccionado()">
+
+      <div class="tabla-card">
+        @if (pedidosFiltrados().length === 0) {
+          <div class="vacio">
+            <div class="vacio-icon">P360</div>
+            <p>No hay pedidos que coincidan con la búsqueda.</p>
+          </div>
+        } @else {
+          <table>
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (pedido of pedidosFiltrados(); track pedido.id) {
+                <tr
+                  [class.seleccionado]="pedido.id === idSeleccionado()"
+                  (click)="seleccionarPedido(pedido)">
+                  <td>#{{ pedido.id }}</td>
+                  <td>{{ pedido.clienteEmail ?? 'Sin correo' }}</td>
+                  <td>{{ pedido.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}</td>
+                  <td>{{ pedido.total | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+                  <td>
+                    <span class="estado-badge" [attr.data-estado]="pedido.estado">
+                      {{ etiquetaEstado(pedido.estado) }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+      @if (pedidoSeleccionado(); as pedido) {
+        <aside class="detalle-card">
+          <div class="detalle-header">
+            <div>
+              <span>Pedido</span>
+              <h2>#{{ pedido.id }}</h2>
+            </div>
+
+            <button
+              type="button"
+              class="cerrar"
+              aria-label="Cerrar detalle"
+              (click)="idSeleccionado.set(null)">
+              &#10005;
+            </button>
+          </div>
+
+          <dl class="detalle-datos">
+            <dt>Cliente</dt>
+            <dd>{{ pedido.clienteEmail ?? 'Sin correo' }}</dd>
+
+            <dt>Pyme</dt>
+            <dd>#{{ pedido.pymeId }}</dd>
+
+            <dt>Dirección</dt>
+            <dd>{{ pedido.direccionEntrega }}</dd>
+
+            <dt>Creado</dt>
+            <dd>{{ pedido.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}</dd>
+
+            @if (pedido.fechaEntrega) {
+              <dt>Entregado</dt>
+              <dd>{{ pedido.fechaEntrega | date: 'dd/MM/yyyy HH:mm' }}</dd>
+            }
+
+            <dt>Estado</dt>
+            <dd>
+              <span class="estado-badge" [attr.data-estado]="pedido.estado">
+                {{ etiquetaEstado(pedido.estado) }}
+              </span>
+            </dd>
+          </dl>
+
+          @if (pedido.detalles?.length) {
+            <h3>Productos</h3>
+
+            <ul class="detalle-items">
+              @for (detalle of pedido.detalles; track detalle.id) {
+                <li>
+                  <span>{{ detalle.cantidad }} × {{ detalle.nombreProducto }}</span>
+                  <strong>
+                    {{ detalle.subtotal | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}
+                  </strong>
+                </li>
+              }
+            </ul>
+          }
+
+          <div class="detalle-total">
+            <span>Total</span>
+            <strong>{{ pedido.total | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</strong>
+          </div>
+
+          <h3>Cambiar estado</h3>
+
+          @if (siguientesEstados(pedido.estado).length) {
+            <div class="estado-acciones">
+              @for (estado of siguientesEstados(pedido.estado); track estado.valor) {
+                <button
+                  type="button"
+                  [class.peligro]="estado.valor === 'CANCELADO'"
+                  [disabled]="actualizando()"
+                  (click)="cambiarEstado(pedido, estado.valor)">
+                  {{ estado.valor === 'CANCELADO' ? 'Cancelar pedido' : 'Pasar a ' + estado.etiqueta }}
+                </button>
+              }
+            </div>
+          } @else {
+            <p class="estado-final">
+              Este pedido está {{ etiquetaEstado(pedido.estado).toLowerCase() }}
+              y ya no puede cambiar de estado.
+            </p>
+          }
+        </aside>
+      }
+
+    </div>
+  }
+
+</section>
