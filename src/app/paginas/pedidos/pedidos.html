@@ -7,15 +7,15 @@
       <h1>Pedidos</h1>
 
       <p>
-        Consulta los pedidos de tu negocio, revisa su detalle y
-        actualiza su estado a medida que avanzan.
+        Consulta los pedidos de tu negocio, revisa sus productos
+        y actualiza el estado de preparación y entrega.
       </p>
     </div>
 
     <button
       type="button"
       class="secondary-button"
-      [disabled]="cargando()"
+      [disabled]="cargando() || actualizando()"
       (click)="cargarPedidos()">
       Actualizar
     </button>
@@ -27,9 +27,15 @@
         type="button"
         class="resumen-card"
         [class.active]="filtroEstado() === estado.valor"
-        (click)="filtroEstado.set(filtroEstado() === estado.valor ? 'TODOS' : estado.valor)">
+        (click)="filtroEstado.set(
+          filtroEstado() === estado.valor ? 'TODOS' : estado.valor
+        )">
+
         <strong>{{ contarPorEstado(estado.valor) }}</strong>
-        <span class="estado-badge" [attr.data-estado]="estado.valor">
+
+        <span
+          class="estado-badge"
+          [attr.data-estado]="estado.valor">
           {{ estado.etiqueta }}
         </span>
       </button>
@@ -39,7 +45,7 @@
   <div class="filtros">
     <input
       type="search"
-      placeholder="Buscar por número, cliente o dirección"
+      placeholder="Buscar pedido, cliente, dirección o producto"
       [ngModel]="busqueda()"
       (ngModelChange)="busqueda.set($event)">
 
@@ -47,20 +53,27 @@
       [ngModel]="filtroEstado()"
       (ngModelChange)="filtroEstado.set($event)">
       <option value="TODOS">Todos los estados</option>
+
       @for (estado of estados; track estado.valor) {
-        <option [value]="estado.valor">{{ estado.etiqueta }}</option>
+        <option [value]="estado.valor">
+          {{ estado.etiqueta }}
+        </option>
       }
     </select>
   </div>
 
   @if (error()) {
-    <div class="mensaje mensaje-error">{{ error() }}</div>
+    <div class="mensaje mensaje-error">
+      {{ error() }}
+    </div>
   }
 
   @if (cargando()) {
     <div class="mensaje">Cargando pedidos...</div>
   } @else {
-    <div class="pedidos-layout" [class.con-detalle]="pedidoSeleccionado()">
+    <div
+      class="pedidos-layout"
+      [class.con-detalle]="pedidoSeleccionado()">
 
       <div class="tabla-card">
         @if (pedidosFiltrados().length === 0) {
@@ -74,6 +87,7 @@
               <tr>
                 <th>N°</th>
                 <th>Cliente</th>
+                <th>Productos</th>
                 <th>Fecha</th>
                 <th>Total</th>
                 <th>Estado</th>
@@ -85,12 +99,42 @@
                 <tr
                   [class.seleccionado]="pedido.id === idSeleccionado()"
                   (click)="seleccionarPedido(pedido)">
+
                   <td>#{{ pedido.id }}</td>
-                  <td>{{ pedido.clienteEmail ?? 'Sin correo' }}</td>
-                  <td>{{ pedido.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}</td>
-                  <td>{{ pedido.total | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</td>
+
                   <td>
-                    <span class="estado-badge" [attr.data-estado]="pedido.estado">
+                    {{ pedido.clienteEmail ?? 'Sin correo' }}
+                  </td>
+
+                  <td class="productos-celda">
+                    @if (pedido.detalles?.length) {
+                      <div class="productos-resumen">
+                        @for (detalle of pedido.detalles; track detalle.id) {
+                          <span class="producto-linea">
+                            {{ detalle.cantidad }} ×
+                            {{ detalle.nombreProducto || ('Producto #' + detalle.productoId) }}
+                          </span>
+                        }
+                      </div>
+                    } @else {
+                      <span class="sin-productos">
+                        Sin productos registrados
+                      </span>
+                    }
+                  </td>
+
+                  <td>
+                    {{ pedido.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
+                  </td>
+
+                  <td>
+                    {{ pedido.total | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}
+                  </td>
+
+                  <td>
+                    <span
+                      class="estado-badge"
+                      [attr.data-estado]="pedido.estado">
                       {{ etiquetaEstado(pedido.estado) }}
                     </span>
                   </td>
@@ -103,6 +147,7 @@
 
       @if (pedidoSeleccionado(); as pedido) {
         <aside class="detalle-card">
+
           <div class="detalle-header">
             <div>
               <span>Pedido</span>
@@ -129,61 +174,105 @@
             <dd>{{ pedido.direccionEntrega }}</dd>
 
             <dt>Creado</dt>
-            <dd>{{ pedido.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}</dd>
+            <dd>
+              {{ pedido.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}
+            </dd>
 
             @if (pedido.fechaEntrega) {
               <dt>Entregado</dt>
-              <dd>{{ pedido.fechaEntrega | date: 'dd/MM/yyyy HH:mm' }}</dd>
+              <dd>
+                {{ pedido.fechaEntrega | date: 'dd/MM/yyyy HH:mm' }}
+              </dd>
             }
 
             <dt>Estado</dt>
             <dd>
-              <span class="estado-badge" [attr.data-estado]="pedido.estado">
+              <span
+                class="estado-badge"
+                [attr.data-estado]="pedido.estado">
                 {{ etiquetaEstado(pedido.estado) }}
               </span>
             </dd>
           </dl>
 
-          @if (pedido.detalles?.length) {
-            <h3>Productos</h3>
+          <h3>Productos del pedido</h3>
 
+          @if (pedido.detalles?.length) {
             <ul class="detalle-items">
               @for (detalle of pedido.detalles; track detalle.id) {
                 <li>
-                  <span>{{ detalle.cantidad }} × {{ detalle.nombreProducto }}</span>
-                  <strong>
+                  <div class="producto-info">
+                    <strong>
+                      {{ detalle.nombreProducto || ('Producto #' + detalle.productoId) }}
+                    </strong>
+
+                    <small>
+                      {{ detalle.cantidad }} unidad(es) ×
+                      {{ detalle.precioUnitario | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}
+                    </small>
+                  </div>
+
+                  <strong class="producto-subtotal">
                     {{ detalle.subtotal | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}
                   </strong>
                 </li>
               }
             </ul>
+          } @else {
+            <p class="sin-productos">
+              Este pedido no tiene productos registrados.
+            </p>
           }
 
           <div class="detalle-total">
-            <span>Total</span>
-            <strong>{{ pedido.total | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}</strong>
+            <span>Total del pedido</span>
+
+            <strong>
+              {{ pedido.total | currency: 'CLP' : 'symbol-narrow' : '1.0-0' }}
+            </strong>
           </div>
 
-          <h3>Cambiar estado</h3>
+          <h3>Gestionar estado</h3>
 
           @if (siguientesEstados(pedido.estado).length) {
+            <p class="estado-ayuda">
+              Selecciona la siguiente etapa del pedido.
+            </p>
+
             <div class="estado-acciones">
-              @for (estado of siguientesEstados(pedido.estado); track estado.valor) {
+              @for (
+                estado of siguientesEstados(pedido.estado);
+                track estado.valor
+              ) {
                 <button
                   type="button"
                   [class.peligro]="estado.valor === 'CANCELADO'"
                   [disabled]="actualizando()"
                   (click)="cambiarEstado(pedido, estado.valor)">
-                  {{ estado.valor === 'CANCELADO' ? 'Cancelar pedido' : 'Pasar a ' + estado.etiqueta }}
+
+                  @if (estado.valor === 'CANCELADO') {
+                    Cancelar pedido
+                  } @else {
+                    Pasar a {{ estado.etiqueta }}
+                  }
+
                 </button>
               }
             </div>
+
+            @if (actualizando()) {
+              <p class="estado-ayuda">
+                Guardando el nuevo estado...
+              </p>
+            }
           } @else {
             <p class="estado-final">
-              Este pedido está {{ etiquetaEstado(pedido.estado).toLowerCase() }}
-              y ya no puede cambiar de estado.
+              Este pedido está
+              {{ etiquetaEstado(pedido.estado).toLowerCase() }}
+              y no permite más cambios de estado.
             </p>
           }
+
         </aside>
       }
 

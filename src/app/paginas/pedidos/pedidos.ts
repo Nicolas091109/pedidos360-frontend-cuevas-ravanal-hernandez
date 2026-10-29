@@ -41,11 +41,10 @@ interface OpcionEstado {
   etiqueta: string;
 }
 
-// Mismas transiciones que EstadoPedido.java en ms-pedidos360-orders
 const TRANSICIONES: Record<EstadoPedido, EstadoPedido[]> = {
   CREADO: ['ACEPTADO', 'CANCELADO'],
-  ACEPTADO: ['EN_PREPARACION', 'CANCELADO'],
-  EN_PREPARACION: ['DESPACHADO', 'CANCELADO'],
+  ACEPTADO: ['EN_PREPARACION'],
+  EN_PREPARACION: ['DESPACHADO'],
   DESPACHADO: ['ENTREGADO'],
   ENTREGADO: [],
   CANCELADO: []
@@ -60,7 +59,7 @@ const TRANSICIONES: Record<EstadoPedido, EstadoPedido[]> = {
 export class Pedidos implements OnInit {
 
   private http = inject(HttpClient);
-  private ordersUrl = `${apiBaseUrl}api/orders`;
+  private readonly ordersUrl = `${apiBaseUrl}api/orders`;
 
   estados: OpcionEstado[] = [
     { valor: 'CREADO', etiqueta: 'Creado' },
@@ -84,17 +83,27 @@ export class Pedidos implements OnInit {
     const texto = this.busqueda().trim().toLowerCase();
     const estado = this.filtroEstado();
 
-    return this.pedidos().filter(pedido =>
-      (estado === 'TODOS' || pedido.estado === estado) &&
-      (!texto ||
+    return this.pedidos().filter(pedido => {
+      const coincideEstado =
+        estado === 'TODOS' || pedido.estado === estado;
+
+      const coincideBusqueda =
+        !texto ||
         String(pedido.id).includes(texto) ||
-        pedido.clienteEmail?.toLowerCase().includes(texto) ||
-        pedido.direccionEntrega?.toLowerCase().includes(texto))
-    );
+        (pedido.clienteEmail ?? '').toLowerCase().includes(texto) ||
+        (pedido.direccionEntrega ?? '').toLowerCase().includes(texto) ||
+        (pedido.detalles ?? []).some(detalle =>
+          (detalle.nombreProducto ?? '').toLowerCase().includes(texto)
+        );
+
+      return coincideEstado && coincideBusqueda;
+    });
   });
 
   pedidoSeleccionado = computed(() =>
-    this.pedidos().find(pedido => pedido.id === this.idSeleccionado()) ?? null
+    this.pedidos().find(
+      pedido => pedido.id === this.idSeleccionado()
+    ) ?? null
   );
 
   ngOnInit(): void {
@@ -108,27 +117,40 @@ export class Pedidos implements OnInit {
     this.http.get<Pedido[]>(this.ordersUrl).subscribe({
       next: pedidos => {
         this.pedidos.set(
-          [...pedidos].sort((a, b) => b.fechaCreacion.localeCompare(a.fechaCreacion))
+          [...pedidos].sort((a, b) =>
+            b.fechaCreacion.localeCompare(a.fechaCreacion)
+          )
         );
+
         this.cargando.set(false);
       },
       error: () => {
-        this.error.set('No se pudieron cargar los pedidos. Intenta nuevamente.');
+        this.error.set(
+          'No se pudieron cargar los pedidos. Intenta nuevamente.'
+        );
         this.cargando.set(false);
       }
     });
   }
 
   contarPorEstado(estado: EstadoPedido): number {
-    return this.pedidos().filter(pedido => pedido.estado === estado).length;
+    return this.pedidos().filter(
+      pedido => pedido.estado === estado
+    ).length;
   }
 
   etiquetaEstado(estado: EstadoPedido): string {
-    return this.estados.find(opcion => opcion.valor === estado)?.etiqueta ?? estado;
+    return this.estados.find(
+      opcion => opcion.valor === estado
+    )?.etiqueta ?? estado;
   }
 
   siguientesEstados(estado: EstadoPedido): OpcionEstado[] {
-    return this.estados.filter(opcion => TRANSICIONES[estado].includes(opcion.valor));
+    const permitidos = TRANSICIONES[estado] ?? [];
+
+    return this.estados.filter(
+      opcion => permitidos.includes(opcion.valor)
+    );
   }
 
   seleccionarPedido(pedido: Pedido): void {
@@ -138,31 +160,57 @@ export class Pedidos implements OnInit {
   }
 
   cambiarEstado(pedido: Pedido, nuevoEstado: EstadoPedido): void {
+    if (this.actualizando()) {
+      return;
+    }
+
+    const actual = this.pedidos().find(p => p.id === pedido.id);
+
+    if (!actual) {
+      this.error.set('No se encontró el pedido seleccionado.');
+      return;
+    }
+
+    const permitidos = TRANSICIONES[actual.estado] ?? [];
+
+    if (!permitidos.includes(nuevoEstado)) {
+      this.error.set(
+        `No se permite cambiar el pedido de ` +
+        `${this.etiquetaEstado(actual.estado)} a ` +
+        `${this.etiquetaEstado(nuevoEstado)}.`
+      );
+      return;
+    }
+
     this.actualizando.set(true);
     this.error.set(null);
 
-    this.http
-      .patch<Pedido>(`${this.ordersUrl}/${pedido.id}/estado`, null, {
+    this.http.patch<void>(
+      `${this.ordersUrl}/${actual.id}/estado`,
+      null,
+      {
         params: { nuevoEstado }
-      })
-      .subscribe({
-        next: actualizado => {
-          this.pedidos.update(pedidos =>
-            pedidos.map(p =>
-              p.id === pedido.id
-                ? { ...p, ...actualizado, detalles: actualizado.detalles ?? p.detalles }
-                : p
-            )
-          );
-          this.actualizando.set(false);
-        },
-        error: (err: HttpErrorResponse) => {
-          this.error.set(
-            err.error?.message ??
-            `No se pudo cambiar el pedido #${pedido.id} a ${this.etiquetaEstado(nuevoEstado)}.`
-          );
-          this.actualizando.set(false);
-        }
-      });
+      }
+    ).subscribe({
+      next: () => {
+        this.actualizando.set(false);
+
+        this.cargarPedidos();
+      },
+      error: (err: HttpErrorResponse) => {
+        const mensajeServidor =
+          typeof err.error?.message === 'string'
+            ? err.error.message
+            : null;
+
+        this.error.set(
+          mensajeServidor ??
+          `No se pudo cambiar el pedido #${actual.id} ` +
+          `a ${this.etiquetaEstado(nuevoEstado)}.`
+        );
+
+        this.actualizando.set(false);
+      }
+    });
   }
 }

@@ -18,5 +18,4 @@ export const msalConfig: Configuration = {
 
 export const loginRequest = { scopes: [apiScope] };
 
-// Todas las llamadas pasan por el API Gateway, que enruta a cada microservicio
 export const apiBaseUrl = 'http://localhost:8080/';
